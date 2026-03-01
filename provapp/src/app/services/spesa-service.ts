@@ -3,31 +3,43 @@ import { inject, Injectable } from '@angular/core';
 import Keycloak from 'keycloak-js';
 import { Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
+// Definiamo un'interfaccia per il nostro Item
+export interface ShoppingItem {
+  id: number;
+  item: string;
+}
+
+@Injectable({ providedIn: 'root' })
 export class SpesaService {
   private http = inject(HttpClient);
   private keycloak = inject(Keycloak);
-  //ricordate di aprire la porta del server
-  private baseUrl = 'https://stunning-winner-5gv7v6p97j5w24xx9-5000.app.github.dev'
-  //ci serve per allegare il token ad ogni
-  //richiesta http
+  private baseUrl = 'https://stunning-winner-5gv7v6p97j5w24xx9-5000.app.github.dev';
+  
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       Authorization: `Bearer ${this.keycloak.token}`,
     });
   }
-  getItems(): Observable<{ items: string[]; user: string }> {
-    return this.http.get<{ items: string[]; user: string }>(
+
+  getItems(): Observable<{ items: ShoppingItem[]; user: string }> {
+    return this.http.get<{ items: ShoppingItem[]; user: string }>(
       `${this.baseUrl}/items`,
       { headers: this.getHeaders() }
     );
   }
-  addItem(item: string): Observable<{ items: string[] }> {
-    return this.http.post<{ items: string[] }>(
+
+  addItem(item: string): Observable<{ items: ShoppingItem[] }> {
+    return this.http.post<{ items: ShoppingItem[] }>(
       `${this.baseUrl}/items`,
       { item },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // Nuovo metodo per l'eliminazione
+  deleteItem(id: number): Observable<{ items: ShoppingItem[] }> {
+    return this.http.delete<{ items: ShoppingItem[] }>(
+      `${this.baseUrl}/items/${id}`,
       { headers: this.getHeaders() }
     );
   }

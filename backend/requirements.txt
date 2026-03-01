@@ -1,5 +1,7 @@
-flask 
-flask-cors 
 PyJWT 
 cryptography 
 requests
+Flask
+pymysql
+flask-cors
+python-dotenv
