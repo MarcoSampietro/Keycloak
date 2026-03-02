@@ -1,26 +1,30 @@
-import { Injectable, inject } from '@angular/core';
+import { inject } from '@angular/core';
+import { CanActivateFn, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 import Keycloak from 'keycloak-js';
-@Injectable({ providedIn: 'root' })
-export class AuthService {
-    private keycloak = inject(Keycloak);
-    login(): void {
-        this.keycloak.login({ redirectUri: window.location.origin });
-    }
-    logout(): void {
-        this.keycloak.logout({
-        redirectUri: window.location.origin,
-        });
-    }
-    //true se user ha completato login
-    isLoggedIn(): boolean {
-        return !!this.keycloak.authenticated;
-    }
-    getUsername(): string {
-        return this.keycloak.tokenParsed?.['preferred_username'] ?? '';
-    }
-    //restituisce il token JWT
-    //ci servirà x chiamate API autenticate/autorizzate
-    getToken(): string | undefined {
-        return this.keycloak.token;
-    }
-}
+import { AuthService } from './auth.service';
+//angular lo esegue automaticamente prima di
+//attivare qualsiasi rotta che ha canActivate: [authGuard]
+//lo vedremo dopo nell'app.routes.ts
+export const authGuard: CanActivateFn = (
+    _route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+) => {
+    const keycloak = inject(Keycloak);
+    //se autenticato,carica il componente
+    if (keycloak.authenticated) return true;
+    //altrimenti manda al login
+    keycloak.login({
+        redirectUri: window.location.origin + state.url,
+    });
+    return false;
+};
+//aggiugiamo il userPlusGuard
+export const userPlusGuard: CanActivateFn = () => {
+    const authService = inject(AuthService);
+    const router = inject(Router);
+    //se l'utente user_plus true
+    if (authService.hasRole('user_plus')) return true;
+    //altrimenti torna a / (home nel nostro caso):
+    router.navigate(['/']);
+    return false;
+};
