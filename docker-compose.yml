@@ -9,8 +9,10 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
       KC_PROXY_HEADERS: "xforwarded"
-      KEYCLOAK_IMPORT: /opt/jboss/keycloak/imports/realm-export.json - Dkeycloak.profile.feature. upload_scripts-enabled
+      KC_DB: dev-file
     ports:
       - "8080:8080"
+    volumes:
+      - ./keycloak_data:/opt/keycloak/data
     command:
       - start-dev
